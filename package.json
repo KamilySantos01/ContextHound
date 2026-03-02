@@ -6,6 +6,14 @@
   "bin": {
     "hound": "./dist/cli.js"
   },
+  "files": [
+    "dist/"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IulianVOStrut/ContextHound.git"
+  },
+  "homepage": "https://github.com/IulianVOStrut/ContextHound#readme",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
