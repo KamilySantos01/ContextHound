@@ -12,23 +12,29 @@
     "hound": "node dist/cli.js scan",
     "test": "jest --forceExit",
     "test:watch": "jest --watch",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["prompt-injection", "security", "llm", "ai-safety", "cli"],
+  "keywords": [
+    "prompt-injection",
+    "security",
+    "llm",
+    "ai-safety",
+    "cli"
+  ],
   "author": "IulianVOStrut",
   "license": "MIT",
   "dependencies": {
-    "chokidar": "^4.0.3",
+    "chokidar": "^5.0.0",
     "commander": "^14.0.3",
     "fast-glob": "^3.3.2"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
-    "@types/node": "^25.3.0",
+    "@types/node": "^25.3.3",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
     "@typescript-eslint/parser": "^8.56.1",
-    "eslint": "^8.57.0",
+    "eslint": "^10.0.2",
     "jest": "^30.2.0",
     "ts-jest": "^29.1.2",
     "typescript": "^5.3.3"
