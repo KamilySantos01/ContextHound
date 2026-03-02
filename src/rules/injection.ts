@@ -57,13 +57,24 @@ export const injectionRules: Rule[] = [
         }
       }
 
-      // Filter out matches where a delimiter is present nearby
+      // Filter out matches where a safe delimiter or sanitization wrapper is present nearby.
+      // Recognises: backtick fences, <USER> tags, explicit "untrusted" labels, and
+      // sanitization/escaping function calls applied to the interpolated variable — the
+      // primary source of false positives for teams that properly clean inputs before use.
       return allResults.filter(r => {
+        const varName = r.evidence.match(/\$\{([^}]+)\}|#\{([^}]+)\}|\\?\(([^)]+)\)/)?.[1] ?? '';
+        const rootVar = varName.split('.')[0].trim();
         const context = prompt.text.slice(
-          Math.max(0, prompt.text.indexOf(r.evidence) - 100),
-          prompt.text.indexOf(r.evidence) + 100
+          Math.max(0, prompt.text.indexOf(r.evidence) - 150),
+          prompt.text.indexOf(r.evidence) + 150
         );
-        return !/(```|<USER>|<user>|\[USER\]|untrusted|user content|user input)/i.test(context);
+        const hasBoundary = /(```|<USER>|<user>|\[USER\]|untrusted|user content|user input)/i.test(context);
+        const hasSanitizer = rootVar
+          ? new RegExp(
+              `(?:sanitize|sanitise|escape|htmlEscape|xss|DOMPurify\\.sanitize|validator\\.escape|encodeURIComponent|stripTags)\\s*\\(\\s*${rootVar}\\b`,
+            ).test(context)
+          : false;
+        return !hasBoundary && !hasSanitizer;
       });
     },
   },

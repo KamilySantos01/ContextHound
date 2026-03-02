@@ -1,6 +1,10 @@
 import type { Rule, RuleMatch } from './types.js';
 import type { ExtractedPrompt } from '../scanner/extractor.js';
 
+// Shared retrieval call pattern used by RAG-005 and RAG-006
+const RETRIEVAL_CALL_PATTERN =
+  /(?:similaritySearch|similarity_search|vectorStore\.query|vector_store\.query|vectorstore\.query|retriever\.(?:get_relevant_documents|invoke|retrieve)|retrieve(?:Documents?|Chunks?|Context)?\s*\(|\.search\s*\(\s*(?!['"`])|docsearch\.search|pinecone\.query|weaviate\.query|qdrant\.search|milvus\.search|chromadb\.query|faiss\.search)/i;
+
 export const ragRules: Rule[] = [
   {
     id: 'RAG-001',
@@ -118,6 +122,72 @@ export const ragRules: Rule[] = [
       const pattern =
         /(?:(?:retrieved|context|documents?|knowledge\s+base|search\s+results?).{0,60}(?:highest\s+priority|overrides?|takes?\s+precedence|more\s+important\s+than|supersedes?|always\s+follow|must\s+follow)|(?:always|must|strictly)\s+follow\s+(?:the\s+)?(?:retrieved|context|documents?|knowledge\s+base|search\s+results?))/i;
       return matchPattern(prompt, pattern);
+    },
+  },
+  {
+    id: 'RAG-005',
+    title: 'Provenance-free retrieval — chunks inserted into prompt without source metadata check',
+    severity: 'medium',
+    confidence: 'medium',
+    category: 'injection',
+    remediation:
+      'Attach provenance metadata (source, owner, last_reviewed) to every retrieved chunk and validate it before the chunk enters the prompt. If provenance cannot be established, reject the chunk or quarantine it behind a trust barrier. Provenance tags let you enforce trust-tier filtering downstream.',
+    check(prompt: ExtractedPrompt): RuleMatch[] {
+      if (prompt.kind !== 'code-block') return [];
+
+      // Must have a retrieval call in the file
+      if (!RETRIEVAL_CALL_PATTERN.test(prompt.text)) return [];
+
+      // A provenance check accesses source/owner/trust metadata or a score on the result
+      const PROVENANCE_CHECK =
+        /(?:\.(?:source|metadata\.source|owner|last_reviewed|trust_level|trust_score|provenance|origin)\b|chunk(?:s|es)?\[.{0,20}\]\.(?:source|metadata|owner)|\.filter\s*\([^)]*(?:source|owner|trust|provenance))/i;
+
+      if (PROVENANCE_CHECK.test(prompt.text)) return [];
+
+      // Flag the first retrieval call site
+      const lines = prompt.text.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        if (RETRIEVAL_CALL_PATTERN.test(lines[i])) {
+          return [{
+            evidence: lines[i].trim(),
+            lineStart: prompt.lineStart + i,
+            lineEnd: prompt.lineStart + i,
+          }];
+        }
+      }
+      return [];
+    },
+  },
+  {
+    id: 'RAG-006',
+    title: 'No ACL or trust-tier filter applied before retrieval enters the prompt',
+    severity: 'high',
+    confidence: 'medium',
+    category: 'injection',
+    remediation:
+      'Apply ACL and trust-tier filters as part of the retrieval query, not as a post-retrieval step. Pass a filter/where/metadata_filter/namespace parameter to your vector store query to restrict results to documents the caller is authorised to access. Documents that fail the policy must never enter the prompt.',
+    check(prompt: ExtractedPrompt): RuleMatch[] {
+      if (prompt.kind !== 'code-block') return [];
+
+      if (!RETRIEVAL_CALL_PATTERN.test(prompt.text)) return [];
+
+      // A filter is passed when the call includes a filter/where/metadata_filter/score_threshold/namespace/acl parameter
+      const FILTER_PARAM =
+        /(?:filter\s*:|where\s*:|metadata_filter\s*:|score_threshold\s*:|namespace\s*:|acl\s*:|trust_(?:level|tier)\s*:|filter\s*=\s*\{|\.namespace\s*\(|with_filter\s*\(|with_where\s*\()/i;
+
+      if (FILTER_PARAM.test(prompt.text)) return [];
+
+      const lines = prompt.text.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        if (RETRIEVAL_CALL_PATTERN.test(lines[i])) {
+          return [{
+            evidence: lines[i].trim(),
+            lineStart: prompt.lineStart + i,
+            lineEnd: prompt.lineStart + i,
+          }];
+        }
+      }
+      return [];
     },
   },
 ];

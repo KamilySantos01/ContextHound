@@ -1637,3 +1637,74 @@ describe('AGT-004: Plan injection — user input interpolated into agent plannin
     expect(rule.check(prompt, 'agent.ts')).toHaveLength(0);
   });
 });
+
+// ── RAG-005: Provenance-free retrieval ────────────────────────────────────────
+
+describe('RAG-005: Provenance-free retrieval', () => {
+  const rule = ragRules.find(r => r.id === 'RAG-005')!;
+
+  it('flags similaritySearch result used without provenance check', () => {
+    const code = [
+      'const docs = await vectorStore.similaritySearch(query, 4);',
+      'const context = docs.map(d => d.pageContent).join("\\n");',
+      'messages.push({ role: "user", content: context });',
+    ].join('\n');
+    expect(rule.check(makePrompt(code, 1, 'code-block'), 'rag.ts')).toHaveLength(1);
+  });
+
+  it('does not flag when source metadata is checked', () => {
+    const code = [
+      'const docs = await vectorStore.similaritySearch(query, 4);',
+      'const trusted = docs.filter(d => d.metadata.source === "internal");',
+      'messages.push({ role: "user", content: trusted[0].pageContent });',
+    ].join('\n');
+    expect(rule.check(makePrompt(code, 1, 'code-block'), 'rag.ts')).toHaveLength(0);
+  });
+
+  it('does not flag non-code-block prompts', () => {
+    const prompt = makePrompt('const docs = await vectorStore.similaritySearch(query);', 1, 'raw');
+    expect(rule.check(prompt, 'rag.ts')).toHaveLength(0);
+  });
+
+  it('does not flag when no retrieval call is present', () => {
+    const code = 'const result = await openai.chat.completions.create({ messages });';
+    expect(rule.check(makePrompt(code, 1, 'code-block'), 'rag.ts')).toHaveLength(0);
+  });
+});
+
+// ── RAG-006: No ACL/trust-tier filter on retrieval ────────────────────────────
+
+describe('RAG-006: No ACL or trust-tier filter applied before retrieval', () => {
+  const rule = ragRules.find(r => r.id === 'RAG-006')!;
+
+  it('flags pinecone.query without a filter parameter', () => {
+    const code = [
+      'const results = await pinecone.query({ vector: embedding, topK: 5 });',
+      'prompt += results.matches.map(m => m.metadata.text).join("\\n");',
+    ].join('\n');
+    expect(rule.check(makePrompt(code, 1, 'code-block'), 'rag.ts')).toHaveLength(1);
+  });
+
+  it('does not flag when a filter parameter is passed', () => {
+    const code = [
+      'const results = await pinecone.query({',
+      '  vector: embedding, topK: 5,',
+      '  filter: { owner: userId, trust_level: "verified" },',
+      '});',
+    ].join('\n');
+    expect(rule.check(makePrompt(code, 1, 'code-block'), 'rag.ts')).toHaveLength(0);
+  });
+
+  it('does not flag when namespace is used', () => {
+    const code = [
+      'const index = pinecone.namespace("user-" + userId);',
+      'const results = await index.query({ vector: embedding, topK: 5 });',
+    ].join('\n');
+    expect(rule.check(makePrompt(code, 1, 'code-block'), 'rag.ts')).toHaveLength(0);
+  });
+
+  it('does not flag non-code-block prompts', () => {
+    const prompt = makePrompt('results = await qdrant.search(embedding)', 1, 'raw');
+    expect(rule.check(prompt, 'rag.ts')).toHaveLength(0);
+  });
+});

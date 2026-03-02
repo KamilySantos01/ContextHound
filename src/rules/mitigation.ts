@@ -36,6 +36,15 @@ export function scoreMitigations(prompt: ExtractedPrompt): MitigationScore {
       present: /(?:untrusted (external |retrieved )?content|external content.{0,40}(may|might|could) (contain|include) instructions?|do not (follow|execute|treat).{0,30}(retrieved|external|context))/i.test(text),
       reduction: 10,
     },
+    {
+      // Recognises deliberate input sanitization/escaping applied before interpolation.
+      // Reduces the risk weight of injection findings when the developer has wrapped user
+      // input in a sanitization function — the clearest signal that the interpolation is
+      // intentional and not naively unguarded, which is the primary false-positive scenario.
+      name: 'Input sanitization or escaping function present',
+      present: /(?:sanitize|sanitise|escape|htmlEscape|DOMPurify\.sanitize|validator\.escape|xss\s*\(|encodeURIComponent|stripTags|purify\.sanitize)\s*\(/i.test(text),
+      reduction: 15,
+    },
   ];
 
   const total = checks.reduce((sum, c) => (c.present ? sum + c.reduction : sum), 0);
