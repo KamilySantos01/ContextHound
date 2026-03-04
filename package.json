@@ -21,6 +21,7 @@
     "test": "jest --forceExit",
     "test:watch": "jest --watch",
     "lint": "eslint src",
+    "benchmark": "npm run build && node scripts/benchmark.js",
     "prepublishOnly": "npm run build"
   },
   "keywords": [

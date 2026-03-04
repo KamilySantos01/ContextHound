@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "description": "Ground-truth labels for ContextHound FP/FN rate measurement",
+  "safe": [
+    {
+      "file": "rag-pipeline.ts",
+      "description": "RAG pipeline using string concatenation with trust-boundary labels, retrieved content in user role"
+    },
+    {
+      "file": "output-consumer.ts",
+      "description": "LLM output consumed with Zod schema validation and DOMPurify HTML sanitization"
+    },
+    {
+      "file": "agent-tools.ts",
+      "description": "Agentic system with explicit tool allowlist, boundary language, and max_iterations guard"
+    },
+    {
+      "file": "prompt-builder.ts",
+      "description": "Prompt template that labels user input as untrusted data with explicit boundary language"
+    },
+    {
+      "file": "command-runner.ts",
+      "description": "Shell command runner using spawn with argument array — no interpolated template strings"
+    }
+  ],
+  "unsafe": [
+    {
+      "file": "inj-001.ts",
+      "description": "User input interpolated directly into template string without any delimiter or trust label",
+      "expectFindings": ["INJ-001"]
+    },
+    {
+      "file": "inj-003.ts",
+      "description": "RAG context variable interpolated into prompt with no untrusted separator",
+      "expectFindings": ["INJ-003"]
+    },
+    {
+      "file": "exf-001.ts",
+      "description": "API key referenced inside system prompt template string",
+      "expectFindings": ["EXF-001"]
+    },
+    {
+      "file": "jbk-001.ts",
+      "description": "Known jailbreak phrase embedded in a prompt string",
+      "expectFindings": ["JBK-001"]
+    },
+    {
+      "file": "out-001.ts",
+      "description": "JSON.parse() called on LLM response variable with no schema validator present",
+      "expectFindings": ["OUT-001"]
+    },
+    {
+      "file": "out-002.ts",
+      "description": "marked.parse() called on LLM output variable with no DOMPurify sanitizer",
+      "expectFindings": ["OUT-002"]
+    },
+    {
+      "file": "tool-001.ts",
+      "description": "System prompt grants unbounded tool execution with 'run any command' language",
+      "expectFindings": ["TOOL-001"]
+    },
+    {
+      "file": "cmd-001.ts",
+      "description": "Shell command built via execSync with unsanitised template-string variable interpolation",
+      "expectFindings": ["CMD-001"]
+    }
+  ]
+}
